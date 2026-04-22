@@ -1,0 +1,664 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evoluta — Central de Suporte</title>
+<style>
+    :root {
+        --primary: #7F77DD;
+        --bg: #0D0B1A;
+        --card: #12103D;
+        --border: #2D2660;
+        --text: #EEEDFE;
+        --text-dim: #8a88b5;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); line-height: 1.5; overflow-x: hidden; }
+
+    .ev-nav { background: var(--card); padding: 15px 5%; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; }
+    .ev-logo { font-size: 20px; font-weight: 700; cursor: default; }
+    .ev-logo span { color: var(--primary); font-size: 11px; margin-left: 5px; text-transform: uppercase; letter-spacing: 1px; }
+
+    .user-profile { position: relative; cursor: pointer; }
+    .user-info { display: flex; align-items: center; gap: 10px; background: #1A1850; padding: 8px 16px; border-radius: 30px; border: 1px solid var(--border); transition: 0.3s; }
+    .user-info:hover { border-color: var(--primary); }
+    .dropdown-menu { 
+        position: absolute; top: 50px; right: 0; width: 220px; background: var(--card); 
+        border: 1px solid var(--border); border-radius: 12px; display: none; flex-direction: column; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden; z-index: 1001;
+    }
+    .dropdown-menu.active { display: flex; animation: fadeIn 0.2s ease; }
+    .dropdown-menu a { padding: 12px 20px; color: var(--text); text-decoration: none; font-size: 14px; border-bottom: 1px solid var(--border); transition: 0.2s; }
+    .dropdown-menu a:hover { background: var(--primary); color: white; }
+    
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .main { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
+    .header-text { text-align: center; margin-bottom: 50px; }
+    .header-text h1 { font-size: 32px; margin-bottom: 10px; }
+
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 60px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 30px; transition: 0.3s; cursor: pointer; }
+    .card:hover { transform: translateY(-5px); border-color: var(--primary); background: #17144a; }
+    .card-icon { font-size: 32px; margin-bottom: 15px; display: block; }
+    .card h3 { margin-bottom: 10px; font-size: 18px; }
+    .card p { color: var(--text-dim); font-size: 14px; }
+
+    .faq-title { margin-bottom: 25px; font-size: 22px; }
+    .faq-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+    .faq-question { width: 100%; padding: 20px; background: none; border: none; color: var(--text); text-align: left; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .faq-question:hover { color: var(--primary); }
+    .faq-question .faq-icon { display: inline-block; transition: transform 0.3s ease; font-size: 20px; line-height: 1; }
+    .faq-item.open .faq-question .faq-icon { transform: rotate(180deg); }
+    .faq-answer { max-height: 0; overflow: hidden; transition: 0.3s ease-out; background: rgba(0,0,0,0.2); }
+    .faq-answer div { padding: 20px; color: var(--text-dim); font-size: 14px; border-top: 1px solid var(--border); line-height: 1.6; }
+    .faq-item.open .faq-answer { max-height: 300px; }
+
+    /* CHAT */
+    .chat-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2000; }
+    .chat-btn { width: 64px; height: 64px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: 0.3s; border: none; }
+    .chat-btn:hover { transform: scale(1.1); background: #6a62c4; }
+
+    .chat-window { 
+        position: absolute; bottom: 80px; right: 0; width: 370px; height: 580px; 
+        background: #F0F2F8; border-radius: 20px; display: none; flex-direction: column; 
+        box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden; animation: chatSlide 0.3s ease;
+    }
+    @keyframes chatSlide { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    .chat-header { background: var(--primary); color: white; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; }
+    .chat-header-info { display: flex; align-items: center; gap: 12px; }
+    .chat-avatar { width: 38px; height: 38px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .chat-status { display: flex; align-items: center; gap: 5px; font-size: 11px; opacity: 0.9; margin-top: 2px; }
+    .status-dot { width: 7px; height: 7px; background: #4ade80; border-radius: 50%; display: inline-block; }
+
+    .chat-body { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #ECEEF5; }
+    
+    .chat-shortcuts { padding: 10px 14px; background: white; border-bottom: 1px solid #E0E3EE; display: flex; flex-wrap: wrap; gap: 6px; }
+    .shortcut-btn { background: #F0F2F8; border: 1px solid #D0D4E8; padding: 5px 12px; border-radius: 16px; font-size: 11px; cursor: pointer; transition: 0.2s; color: #444; }
+    .shortcut-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+    .chat-input-area { padding: 12px 14px; background: white; border-top: 1px solid #E0E3EE; display: flex; gap: 8px; align-items: flex-end; }
+    .chat-input { flex: 1; border: 1px solid #D0D4E8; border-radius: 20px; padding: 9px 14px; font-size: 13px; outline: none; resize: none; max-height: 80px; background: #F7F8FC; font-family: inherit; transition: 0.2s; }
+    .chat-input:focus { border-color: var(--primary); background: white; }
+    .chat-send { background: var(--primary); border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: 0.2s; }
+    .chat-send:hover { background: #6a62c4; }
+    .chat-send svg { width: 16px; height: 16px; fill: white; }
+
+    .chat-quick { padding: 8px 14px 2px; background: white; display: flex; flex-wrap: wrap; gap: 6px; border-top: 1px solid #E0E3EE; }
+
+    .msg { padding: 10px 14px; border-radius: 16px; font-size: 13px; max-width: 82%; line-height: 1.5; }
+    .msg.bot { background: white; color: #2a2a3a; align-self: flex-start; border: 1px solid #DDE0EE; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+    .msg-time { font-size: 10px; opacity: 0.5; margin-top: 3px; display: block; }
+
+    .msg-group-label { font-size: 10px; color: #999; text-align: center; margin: 4px 0; }
+    
+    .chat-opt { background: #F0F2F8; border: 1px solid #D0D4E8; padding: 7px 14px; border-radius: 18px; font-size: 12px; cursor: pointer; transition: 0.2s; color: #333; }
+    .chat-opt:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+    .contact-footer { text-align: center; padding: 60px 20px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 13px; }
+
+    .typing-indicator { display: flex; gap: 4px; align-items: center; padding: 10px 14px; background: white; border-radius: 16px; border-bottom-left-radius: 4px; align-self: flex-start; border: 1px solid #DDE0EE; }
+    .typing-indicator span { width: 7px; height: 7px; background: #aaa; border-radius: 50%; animation: bounce 1s infinite; }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+</style>
+</head>
+<body>
+
+<nav class="ev-nav">
+    <div class="ev-logo">Evoluta <span>Suporte</span></div>
+    <div class="user-profile" onclick="toggleDropdown()">
+        <div class="user-info">
+            <span style="font-size: 13px; font-weight: 500;">Maria Silva</span>
+            <span id="nav-arrow" style="font-size: 10px;">▼</span>
+        </div>
+        <div class="dropdown-menu" id="userMenu">
+            <a href="javascript:void(0)">👤 Minha Conta</a>
+            <a href="javascript:void(0)">📚 Meus Cursos</a>
+            <a href="javascript:void(0)">📜 Certificados</a>
+            <a href="javascript:void(0)">⚙️ Configurações</a>
+            <a href="javascript:void(0)" style="color: #ff6b6b; border: none;">🚪 Sair da Conta</a>
+        </div>
+    </div>
+</nav>
+
+<div class="main">
+    <div class="header-text">
+        <h1>Como podemos ajudar?</h1>
+        <p style="color: var(--primary)">Selecione um tema para resolver agora</p>
+    </div>
+
+    <div class="cards-grid">
+        <div class="card" onclick="openFaq(0)">
+            <span class="card-icon">🎓</span>
+            <h3>Acesso ao Sistema</h3>
+            <p>Problemas para logar, vídeo travando ou acesso não liberado após pagamento.</p>
+        </div>
+        <div class="card" onclick="openFaq(3)">
+            <span class="card-icon">💰</span>
+            <h3>Pagamentos</h3>
+            <p>Dúvidas sobre Pix, Boleto, Cartão e reembolso.</p>
+        </div>
+        <div class="card" onclick="openFaq(4)">
+            <span class="card-icon">🔓</span>
+            <h3>Uso da Plataforma</h3>
+            <p>Certificados, progresso das aulas e materiais de apoio.</p>
+        </div>
+    </div>
+
+    <h2 class="faq-title">Dúvidas Frequentes</h2>
+
+    <!-- ACESSO -->
+    <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+            Não consigo fazer login. O que fazer?
+            <span class="faq-icon">▾</span>
+        </button>
+        <div class="faq-answer">
+            <div>1. Confirme que o e-mail digitado é o mesmo usado na compra.<br>2. Verifique a caixa de SPAM por e-mails de recuperação de senha.<br>3. Desative extensões ou AdBlock que possam interferir.<br>4. Tente acessar em uma aba anônima para descartar problemas de cache.<br>5. Se nada funcionar, use o assistente para solicitar um novo link de acesso.</div>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+            O vídeo das aulas não carrega ou trava. O que fazer?
+            <span class="faq-icon">▾</span>
+        </button>
+        <div class="faq-answer">
+            <div>1. Verifique sua conexão com a internet e tente recarregar a página.<br>2. Limpe o cache do navegador (Ctrl+Shift+Del) e tente novamente.<br>3. Tente outro navegador (Chrome ou Firefox costumam funcionar melhor).<br>4. Desative extensões de bloqueio de anúncios.<br>5. Se o problema persistir, pode ser instabilidade temporária — aguarde alguns minutos e tente de novo.</div>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+            Comprei o curso mas não recebi o acesso. O que fazer?
+            <span class="faq-icon">▾</span>
+        </button>
+        <div class="faq-answer">
+            <div>1. Verifique se o pagamento foi confirmado (Pix é imediato, Cartão pode levar até 30 min, Boleto até 3 dias úteis).<br>2. Cheque sua caixa de SPAM por e-mail de boas-vindas.<br>3. Tente fazer login com o e-mail usado na compra.<br>4. Se o pagamento foi confirmado e ainda não tem acesso, fale com nosso assistente enviando o comprovante.</div>
+        </div>
+    </div>
+
+    <!-- PAGAMENTOS -->
+    <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+            Quanto tempo leva para meu pagamento ser confirmado?
+            <span class="faq-icon">▾</span>
+        </button>
+        <div class="faq-answer">
+            <div><strong>Pix:</strong> Liberação imediata.<br><strong>Cartão de Crédito:</strong> Até 30 minutos (verifique limite e operadora).<br><strong>Boleto Bancário:</strong> Até 3 dias úteis após o pagamento para compensação bancária.</div>
+        </div>
+    </div>
+
+    <!-- PLATAFORMA -->
+    <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+            Como e quando posso obter meu certificado?
+            <span class="faq-icon">▾</span>
+        </button>
+        <div class="faq-answer">
+            <div>Você precisa atingir pelo menos 80% de progresso no curso. Ao atingir essa marca, o botão "Gerar Certificado" ficará disponível automaticamente na aba de conclusão do curso.</div>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+            Como funciona o progresso das aulas?
+            <span class="faq-icon">▾</span>
+        </button>
+        <div class="faq-answer">
+            <div>O progresso é calculado automaticamente conforme você assiste às aulas. Uma aula é marcada como concluída quando você assiste a pelo menos 90% do vídeo. O percentual total aparece na página do curso.</div>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+            Onde encontro os materiais de apoio das aulas?
+            <span class="faq-icon">▾</span>
+        </button>
+        <div class="faq-answer">
+            <div>Os materiais em PDF e outros arquivos extras ficam disponíveis logo abaixo do player de vídeo de cada aula. Role a página para baixo até encontrar a seção "Anexos".</div>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+            As aulas ficam disponíveis para sempre ou têm prazo de acesso?
+            <span class="faq-icon">▾</span>
+        </button>
+        <div class="faq-answer">
+            <div>O prazo de acesso varia conforme o curso adquirido. Você pode verificar o prazo específico do seu curso na página "Meus Cursos". Em caso de dúvida, entre em contato com nosso suporte.</div>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+            Posso assistir as aulas sem internet, de forma offline?
+            <span class="faq-icon">▾</span>
+        </button>
+        <div class="faq-answer">
+            <div>No momento, a plataforma não oferece suporte para download de aulas para acesso offline. O conteúdo está disponível apenas online. Recomendamos uma conexão estável de pelo menos 5 Mbps para melhor experiência.</div>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+            Como entro em contato com o professor para tirar dúvidas?
+            <span class="faq-icon">▾</span>
+        </button>
+        <div class="faq-answer">
+            <div>Cada aula possui uma seção de comentários logo abaixo do vídeo, onde você pode deixar sua dúvida diretamente para o professor. O tempo de resposta médio é de 1 a 2 dias úteis.</div>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+            Meu progresso zerou do nada. O que aconteceu?
+            <span class="faq-icon">▾</span>
+        </button>
+        <div class="faq-answer">
+            <div>Isso pode ocorrer por troca de e-mail de acesso, limpeza de cookies do navegador ou instabilidade pontual. Tente recarregar a página. Se o progresso continuar zerado, entre em contato com nosso suporte informando seu e-mail e nome do curso.</div>
+        </div>
+    </div>
+</div>
+
+<div class="contact-footer">
+    Suporte Evoluta: <strong>suporte@evoluta.com.br</strong><br>
+    WhatsApp: <strong>(11) 98765-4321</strong> (Atendimento das 09h às 18h)
+</div>
+
+<div class="chat-widget">
+    <button class="chat-btn" onclick="toggleChat()" title="Falar com Assistente">
+        <span style="font-size: 28px;">🤖</span>
+    </button>
+    
+    <div class="chat-window" id="chatWin">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar">🤖</div>
+                <div>
+                    <div style="font-weight: bold; font-size: 15px;">Assistente Evoluta</div>
+                    <div class="chat-status">
+                        <span class="status-dot" id="statusDot"></span>
+                        <span id="statusText">Online agora</span>
+                    </div>
+                </div>
+            </div>
+            <button onclick="toggleChat()" style="background:none; border:none; color:white; cursor:pointer; font-size: 22px;">&times;</button>
+        </div>
+
+        <!-- Atalhos rápidos -->
+        <div class="chat-shortcuts">
+            <button class="shortcut-btn" onclick="shortcut('login_1', 'Login com problema')">🔑 Login</button>
+            <button class="shortcut-btn" onclick="shortcut('video_1', 'Vídeo travando')">📹 Vídeo</button>
+            <button class="shortcut-btn" onclick="shortcut('acesso_compra_1', 'Email de acesso não chegou')">📧 Acesso</button>
+            <button class="shortcut-btn" onclick="shortcut('pix_1', 'Pix não confirmou')">💸 Pix</button>
+            <button class="shortcut-btn" onclick="shortcut('boleto_1', 'Boleto vencido')">🧾 Boleto</button>
+            <button class="shortcut-btn" onclick="shortcut('cartao_1', 'Erro no cartão')">💳 Cartão</button>
+            <button class="shortcut-btn" onclick="shortcut('cert_1', 'Certificado não apareceu')">🎓 Certificado</button>
+            <button class="shortcut-btn" onclick="shortcut('progresso_1', 'Progresso zerou')">📊 Progresso</button>
+        </div>
+
+        <div class="chat-body" id="chatMsgBox"></div>
+
+        <!-- Botões de resposta rápida -->
+        <div class="chat-quick" id="chatButtons"></div>
+
+        <!-- Campo de texto -->
+        <div class="chat-input-area">
+            <textarea class="chat-input" id="chatInput" placeholder="Digite sua dúvida..." rows="1" onkeydown="handleKey(event)"></textarea>
+            <button class="chat-send" onclick="sendText()">
+                <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleDropdown() {
+        const menu = document.getElementById('userMenu');
+        const arrow = document.getElementById('nav-arrow');
+        menu.classList.toggle('active');
+        arrow.style.transform = menu.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0)';
+    }
+
+    window.onclick = function(event) {
+        if (!event.target.closest('.user-profile')) {
+            document.getElementById('userMenu').classList.remove('active');
+            document.getElementById('nav-arrow').style.transform = 'rotate(0)';
+        }
+    }
+
+    function toggleFaq(btn) {
+        const item = btn.parentElement;
+        const isOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+        if (!isOpen) item.classList.add('open');
+    }
+
+    function openFaq(index) {
+        const faqs = document.querySelectorAll('.faq-question');
+        if (faqs[index]) {
+            faqs[index].click();
+            window.scrollTo({ top: faqs[index].offsetTop - 100, behavior: 'smooth' });
+        }
+    }
+
+    // ===== CHAT =====
+    const chatWin = document.getElementById('chatWin');
+    const chatMsgBox = document.getElementById('chatMsgBox');
+    const chatButtons = document.getElementById('chatButtons');
+
+    function toggleChat() {
+        const isVisible = chatWin.style.display === 'flex';
+        chatWin.style.display = isVisible ? 'none' : 'flex';
+        if (!isVisible && chatMsgBox.innerHTML === '') startBot();
+    }
+
+    function getTime() {
+        return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function addMsg(text, type) {
+        const d = document.createElement('div');
+        d.className = `msg ${type}`;
+        d.innerHTML = text.replace(/\n/g, '<br>') + `<span class="msg-time">${getTime()}</span>`;
+        chatMsgBox.appendChild(d);
+        chatMsgBox.scrollTop = chatMsgBox.scrollHeight;
+    }
+
+    function showTyping() {
+        const t = document.createElement('div');
+        t.className = 'typing-indicator';
+        t.id = 'typingIndicator';
+        t.innerHTML = '<span></span><span></span><span></span>';
+        chatMsgBox.appendChild(t);
+        chatMsgBox.scrollTop = chatMsgBox.scrollHeight;
+    }
+
+    function removeTyping() {
+        const t = document.getElementById('typingIndicator');
+        if (t) t.remove();
+    }
+
+    function setStatus(text, online = true) {
+        document.getElementById('statusText').textContent = text;
+        document.getElementById('statusDot').style.background = online ? '#4ade80' : '#facc15';
+    }
+
+    function renderOptions(opts) {
+        chatButtons.innerHTML = '';
+        opts.forEach(o => {
+            const btn = document.createElement('button');
+            btn.className = 'chat-opt';
+            btn.innerText = o.label;
+            btn.onclick = () => handleChoice(o);
+            chatButtons.appendChild(btn);
+        });
+    }
+
+    function transferToHuman() {
+        chatButtons.innerHTML = '';
+        setStatus('Digitando...', false);
+        showTyping();
+        setTimeout(() => {
+            removeTyping();
+            addMsg('Transferindo para o time de Customer Success...', 'bot');
+        }, 1500);
+        setTimeout(() => {
+            setStatus('Digitando...', false);
+            showTyping();
+        }, 2500);
+        setTimeout(() => {
+            removeTyping();
+            addMsg('Olá, Maria! Sou a Lavínia do time de Customer Success. Já estou vendo aqui o que aconteceu e vou te ajudar a resolver agora. Pode me contar um pouco mais sobre o problema?', 'bot');
+            setStatus('Online agora', true);
+        }, 6500);
+    }
+
+    function startBot() {
+        addMsg('Olá, Maria! Sou o Assistente Evoluta. 👋\nDigite sua dúvida ou use os atalhos acima para agilizar.', 'bot');
+        renderOptions([
+            { label: '🔓 Acesso', val: 'menu_acesso' },
+            { label: '💳 Pagamento', val: 'menu_pagamento' },
+            { label: '📚 Plataforma', val: 'menu_plataforma' }
+        ]);
+    }
+
+    // Atalhos rápidos do topo
+    function shortcut(flowKey, label) {
+        addMsg(label, 'user');
+        chatButtons.innerHTML = '';
+        setTimeout(() => {
+            if (flows[flowKey]) {
+                addMsg(flows[flowKey].msg, 'bot');
+                renderOptions(flows[flowKey].next);
+            }
+        }, 600);
+    }
+
+    // Envio por campo de texto
+    function handleKey(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendText(); }
+    }
+
+    function sendText() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text) return;
+        addMsg(text, 'user');
+        input.value = '';
+        chatButtons.innerHTML = '';
+
+        setTimeout(() => {
+            const reply = detectIntent(text.toLowerCase());
+            addMsg(reply.msg, 'bot');
+            if (reply.next) renderOptions(reply.next);
+        }, 700);
+    }
+
+    function detectIntent(text) {
+        if (/login|senha|entrar|acessar|logar|conta/.test(text)) return flows.login_1;
+        if (/vídeo|video|trava|carrega|player|assistir/.test(text)) return flows.video_1;
+        if (/comprei|acesso|não recebi|email|e-mail|boas.vindas/.test(text)) return flows.acesso_compra_1;
+        if (/pix/.test(text)) return flows.pix_1;
+        if (/boleto/.test(text)) return flows.boleto_1;
+        if (/cartão|cartao|crédito|credito/.test(text)) return flows.cartao_1;
+        if (/certificado|certific/.test(text)) return flows.cert_1;
+        if (/progresso|zerou|zerado/.test(text)) return flows.progresso_1;
+        if (/offline|baixar|download|sem internet/.test(text)) return flows.offline_1;
+        if (/prazo|expirar|validade|tempo/.test(text)) return flows.prazo_1;
+        if (/professor|dúvida|comentar|resposta/.test(text)) return {
+            msg: 'Para tirar dúvidas com o professor, use a seção de comentários abaixo do vídeo de cada aula. O tempo de resposta médio é de 1 a 2 dias úteis.',
+            next: [{ label: 'Não resolveu', val: 'human' }]
+        };
+        if (/pagamento|pagar|confirmação|confirmacao/.test(text)) return flows.pix_1;
+        return {
+            msg: 'Entendi! Pode me dar mais detalhes? Ou escolha um dos temas abaixo:',
+            next: [
+                { label: '🔓 Acesso', val: 'menu_acesso' },
+                { label: '💳 Pagamento', val: 'menu_pagamento' },
+                { label: '📚 Plataforma', val: 'menu_plataforma' }
+            ]
+        };
+    }
+
+    const flows = {
+        login_1: {
+            msg: 'Vamos resolver! Confirme que está usando o e-mail da compra e tente redefinir sua senha pelo link "Esqueci minha senha" na tela de login.',
+            next: [{ label: 'Não resolveu', val: 'login_2' }]
+        },
+        login_2: {
+            msg: 'Entendido. Tente abrir em uma aba anônima (Ctrl+Shift+N) e desative qualquer extensão de bloqueio de anúncios.',
+            next: [{ label: 'Ainda não funcionou', val: 'login_3' }]
+        },
+        login_3: {
+            msg: 'Última tentativa: limpe o cache do navegador (Ctrl+Shift+Del → limpar tudo) e tente novamente.',
+            next: [{ label: 'Nada funcionou', val: 'human' }]
+        },
+
+        video_1: {
+            msg: 'Recarregue a página (F5) e verifique se sua internet está estável. Conexões abaixo de 5 Mbps podem causar travamentos.',
+            next: [{ label: 'Não resolveu', val: 'video_2' }]
+        },
+        video_2: {
+            msg: 'Tente abrir em outro navegador (Chrome ou Firefox). Extensões como AdBlock costumam bloquear players de vídeo.',
+            next: [{ label: 'Ainda trava', val: 'video_3' }]
+        },
+        video_3: {
+            msg: 'Limpe o cache do navegador (Ctrl+Shift+Del) e tente novamente. Se persistir, pode ser instabilidade temporária — aguarde 10 minutos.',
+            next: [{ label: 'Continua com problema', val: 'human' }]
+        },
+
+        acesso_compra_1: {
+            msg: 'Verifique se o prazo de compensação já passou: Pix é imediato, Cartão até 30 min, Boleto até 3 dias úteis. O e-mail de acesso pode estar no SPAM.',
+            next: [{ label: 'Prazo passou e não recebi', val: 'acesso_compra_2' }]
+        },
+        acesso_compra_2: {
+            msg: 'Tente fazer login com o e-mail da compra — às vezes o acesso já está ativo mas o e-mail foi para o SPAM. Verifique a pasta de lixo eletrônico também.',
+            next: [{ label: 'Login não funciona', val: 'acesso_compra_3' }]
+        },
+        acesso_compra_3: {
+            msg: 'Para liberar manualmente, precisamos do seu comprovante de pagamento. Nossa equipe resolve em até 2 horas após o envio.',
+            next: [{ label: 'Quero enviar comprovante', val: 'human' }]
+        },
+
+        pix_1: {
+            msg: 'O Pix normalmente cai na hora. Verifique se o pagamento foi debitado da sua conta bancária. Se foi, tente fazer login — o acesso deve estar ativo.',
+            next: [{ label: 'Foi debitado mas sem acesso', val: 'pix_2' }]
+        },
+        pix_2: {
+            msg: 'Às vezes há um atraso de até 5 minutos. Verifique a pasta SPAM pelo e-mail de boas-vindas e tente login com o e-mail da compra.',
+            next: [{ label: 'Já tentei tudo isso', val: 'pix_3' }]
+        },
+        pix_3: {
+            msg: 'Pode ter ocorrido uma falha na identificação do pagamento. Nossa equipe resolve manualmente com o comprovante do Pix.',
+            next: [{ label: 'Enviar comprovante', val: 'human' }]
+        },
+
+        boleto_1: {
+            msg: 'O boleto pode levar até 3 dias úteis para compensar. Verifique a data do pagamento — se ainda está dentro do prazo, aguarde a confirmação automática.',
+            next: [{ label: 'Prazo já passou', val: 'boleto_2' }]
+        },
+        boleto_2: {
+            msg: 'Verifique no app do seu banco se o boleto aparece como pago. Feriados podem atrasar a compensação.',
+            next: [{ label: 'Está pago no banco mas sem acesso', val: 'boleto_3' }]
+        },
+        boleto_3: {
+            msg: 'Precisamos verificar manualmente. Nossa equipe libera o acesso em até 2 horas após confirmar o pagamento.',
+            next: [{ label: 'Falar com equipe', val: 'human' }]
+        },
+
+        cartao_1: {
+            msg: 'Erro no cartão pode ser limite insuficiente, cartão bloqueado para compras online ou dados incorretos. Verifique com sua operadora.',
+            next: [{ label: 'Cartão ok mas deu erro', val: 'cartao_2' }]
+        },
+        cartao_2: {
+            msg: 'Tente usar outro navegador ou aba anônima para realizar a compra. Extensões do navegador às vezes interferem no pagamento.',
+            next: [{ label: 'Ainda dá erro', val: 'cartao_3' }]
+        },
+        cartao_3: {
+            msg: 'Pode ser restrição temporária da operadora. Tente com outro cartão ou mude para Pix — mais rápido e sem risco de erro.',
+            next: [{ label: 'Preciso de mais ajuda', val: 'human' }]
+        },
+
+        cert_1: {
+            msg: 'O certificado fica disponível ao atingir 80% de progresso no curso. Verifique na aba do curso seu percentual atual.',
+            next: [{ label: 'Tenho +80% mas não aparece', val: 'cert_2' }]
+        },
+        cert_2: {
+            msg: 'Recarregue a página do curso (F5). O sistema pode demorar alguns minutos para atualizar o status após a última aula assistida.',
+            next: [{ label: 'Recarreguei e não apareceu', val: 'cert_3' }]
+        },
+        cert_3: {
+            msg: 'Saia da conta, aguarde 5 minutos, faça login novamente e verifique. Se ainda não aparecer, nossa equipe verifica manualmente.',
+            next: [{ label: 'Continua sem o certificado', val: 'human' }]
+        },
+
+        progresso_1: {
+            msg: 'O progresso pode ter zerado por troca de conta ou limpeza de cookies. Confirme que está logado com o e-mail correto da compra.',
+            next: [{ label: 'É o e-mail certo mas zerou', val: 'progresso_2' }]
+        },
+        progresso_2: {
+            msg: 'Recarregue a página do curso. O progresso é salvo nos servidores, então recarregar deve restaurar os dados.',
+            next: [{ label: 'Recarreguei e continua zerado', val: 'progresso_3' }]
+        },
+        progresso_3: {
+            msg: 'Pode ter ocorrido uma falha de sincronização. Nossa equipe verifica o histórico de acessos e restaura o progresso manualmente.',
+            next: [{ label: 'Quero restaurar meu progresso', val: 'human' }]
+        },
+
+        offline_1: {
+            msg: 'A plataforma não suporta acesso offline — as aulas são transmitidas em streaming. Recomendamos conexão de pelo menos 5 Mbps.',
+            next: [{ label: 'Tenho outra dúvida', val: 'offline_2' }]
+        },
+        offline_2: {
+            msg: 'Uma alternativa é reduzir a qualidade do vídeo (se disponível) para economizar dados em conexões mais lentas.',
+            next: [{ label: 'Ainda preciso de ajuda', val: 'offline_3' }]
+        },
+        offline_3: {
+            msg: 'Para necessidades especiais de acesso, nossa equipe pode verificar alternativas caso a caso.',
+            next: [{ label: 'Falar com equipe', val: 'human' }]
+        },
+
+        prazo_1: {
+            msg: 'O prazo de acesso varia por curso. Verifique na página "Meus Cursos" a data de expiração do seu acesso.',
+            next: [{ label: 'Não encontrei a informação', val: 'prazo_2' }]
+        },
+        prazo_2: {
+            msg: 'Acesse seu perfil → Meus Cursos → clique no curso específico. A data de validade fica nas informações do curso.',
+            next: [{ label: 'Ainda não encontrei', val: 'prazo_3' }]
+        },
+        prazo_3: {
+            msg: 'Pode ter ocorrido um erro de exibição. Nossa equipe confirma o prazo exato do seu acesso em instantes.',
+            next: [{ label: 'Consultar com equipe', val: 'human' }]
+        }
+    };
+
+    function handleChoice(o) {
+        addMsg(o.label, 'user');
+        chatButtons.innerHTML = '';
+
+        setTimeout(() => {
+            if (o.val === 'menu_acesso') {
+                addMsg('Qual problema de acesso você está enfrentando?', 'bot');
+                renderOptions([
+                    { label: 'Não consigo fazer login', val: 'login_1' },
+                    { label: 'Vídeo não carrega ou trava', val: 'video_1' },
+                    { label: 'Email de acesso não chegou', val: 'acesso_compra_1' }
+                ]);
+            } else if (o.val === 'menu_pagamento') {
+                addMsg('Qual é sua dúvida sobre pagamento?', 'bot');
+                renderOptions([
+                    { label: 'Pix não confirmou', val: 'pix_1' },
+                    { label: 'Boleto vencido', val: 'boleto_1' },
+                    { label: 'Erro no cartão', val: 'cartao_1' }
+                ]);
+            } else if (o.val === 'menu_plataforma') {
+                addMsg('Sobre qual funcionalidade você tem dúvida?', 'bot');
+                renderOptions([
+                    { label: 'Certificado não apareceu', val: 'cert_1' },
+                    { label: 'Progresso zerou', val: 'progresso_1' },
+                    { label: 'Problema técnico', val: 'video_1' },
+                    { label: 'Prazo de acesso', val: 'prazo_1' }
+                ]);
+            } else if (o.val === 'human') {
+                transferToHuman();
+            } else if (flows[o.val]) {
+                addMsg(flows[o.val].msg, 'bot');
+                renderOptions(flows[o.val].next);
+            }
+        }, 700);
+    }
+</script>
+
+</body>
+</html>
+```
+
