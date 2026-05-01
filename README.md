@@ -1,4 +1,4 @@
-Evoluta Suporte
+Evoluta Suporte CRIANDO AUTOMAÇÃO
 
 Simulador de atendimento ao cliente desenvolvido como desafio 1 da Alura.
 
